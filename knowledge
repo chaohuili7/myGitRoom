@@ -1,0 +1,576 @@
+--------------------------------------
+1 定义了一系列资源路径
+
+2 定义若干资源类型CCLoadSpriteType
+
+3 定于资源的异步加载类ImageLoadAsyncEx
+
+4 定义精灵加载管理类CCLoadSprite
+
+
+
+---------------------------------------
+1 功能表 
+  1 整体功能相关集合数据
+2 配置表
+  1 开关
+  2 独立于整体功能的数值配置
+----------------------------------------
+
+
+1  std::stable_sort(sv.begin(), sv.end(),  	[](const std::string& s1, const std::string& s2){ return s1.size()>s2.size(); });
+
+2   bool crossCastleCell::init()
+{
+    CCBLoadFile("crosscell",this,this);
+    //加载图标
+    setSwallowsTouches(false);
+}
+当crossCastleCell要响应触摸时间的时候，如果不进行setSwallowsTouches(false);的操作，cell将吞掉view类的触摸时间，导致cell没有办法拖动，加上setSwallowsTouches(false);触摸事件将下传至view界面，由scrollview类响应拖动时间
+
+
+3 chaohui.li7@icloud.com 10044634lch207
+————————————————————————
+git    lichaohui LoveLfj3344
+
+————————————————————————————————
+Lua local function与function区别
+1 使用function声明的函数为全局函数，在被引用时可以不会因为声明的顺序而找不到 
+2 使用local function声明的函数为局部函数，在引用的时候必须要在声明的函数后面
+———————————————
+1 首先进入到工程目录下
+2 执行 git checkout branch_ui,就切换到这个fei le 
+——————————————
+
+lua调试，先卸载，再加载
+uiText:addTouchEventListener(handler(self, function(self, sender, eventType)
+	    if eventType == ccui.TouchEventType.ended then
+	    	local lua_path = "game.battle.BattleView"
+	    	package.loaded[lua_path] = nil
+	    	local BattleView = require(lua_path)
+	    	local view = BattleView:create()
+	    	PopupViewController:addPopupInView(view)
+	    end
+	end
+————————————————————
+
+
+local class 需要require返回
+-------------------------------------
+使用tolua++,需要使用tolua++的可执行程序自动生成一个.pkg文件，生成对应的C++语言文件，然后把
+这个文件和对应的C++文件一起编译生成可执行程序，遮掩高就可以对对应的lua脚本进行读取操作。
+
+
+
+-----------------------------------
+local cc = cc;
+cc是全局的cocos 的cc，
+局部cc的变量赋值，相当于引用全局cc
+cc.name = pp;
+那全局的cc.name 也等于pp
+但是若重新对局部cc赋值={}
+那局部cc就更新了，全局cc保留
+
+
+------------------打开面板时候的操作
+package.loaded[lua_path] = nil
+local LuaBigSellView = require(lua_path):create(dict)
+PopupViewController:addPopupView(LuaBigSellView)
+
+
+------------------
+assert(“关系表达式”，“---”)
+当关系表达式为true时，没有断言
+当关系表达式是false时，抛出断言
+
+assert(cc.FileUtils:getInstance():isFileExist(file_name), string.format("[UIManager loadccbi] : \"%s\" failed", file_name))
+------------------
+return UIManager:getInstance()
+相当于返回的实例，下次使用时，直接UIManager:func()
+return UIManager
+相当于只返回了类的声明，下次使用时需要UIManager:getInstance():func()
+UIManager 声明时是local UIManager = class("UIManager")的形式，相当于是文件内的局部变量
+所以，如果大范围的使用，不建议在每个文件中添加 local UIManager = require("./UIManager")
+此时的处理方法是，在公共文件中cc.UIManager = loadLuaFile("CommonLib.UIManager")
+将它放置到cc的全局表中，这样在使用的时候这个用就行了，不需要再重新包含
+cc.UIManager:getInstance():func()
+
+一般少用的单例类使用第一种方式
+BattleController = class("BattleController")
+
+loadLuaFile("game.battle.BattleController")
+self.controller = BattleController:create({view = self.armyLayer, view = self})
+保存到类的成员变量，那个这个类就可以直接使用了
+
+------------------
+cc.FileUtils:getInstance():isFileExist(file_name)
+
+
+
+------------------
+require加载机制
+不会重复加载
+加载指定的模块,相当与#include作用类似，加载了该模块，那么就可已使用模块中的全局函数和全局数据（如表等等） 
+注：实际上require “xxx”后，会将xxx中的全局函数和数据放到表_G中，所以也就能访问了。
+------------------
+require 返回值
+require “xxx” 某个模块后
+
+1.如果该模块自身有返回值，且模块加载成功，那么require 的返回值就是该模块的返回值 
+2.如果模块没有返回值，如果require加载模块成功，就返回ture 
+3.require 内部将返回值储存在：package.loaded表中。 
+（即：package.loaded[xxx]中）
+
+------------------
+ YesNoDialog::show(overrideInfo.c_str(), CCCallFunc::create(this, callfunc_selector(UserBindCommand::changeAccountOKCallback)),0,false,CCCallFunc::create(this, callfunc_selector(UserBindCommand::changeAccountCancelCallback)));
+
+
+------------------
+旧的事件注册方式
+function ModelView:onEnter()
+    local function onRefresh( ref )--回调函数写成了包闭函数的形式，调用的时候直接调用函数名就好了
+        self:refreshView()
+    end
+    local t = tolua.cast(self, "cc.Node")
+    local handler = t:registerHandler(onRefresh)--注册回调函数对象
+    CCSafeNotificationCenter:registerScriptObserver(self, handler, "blogView_refresh")--添加回调函数监听
+end
+
+function ModelView:onExit()
+    CCSafeNotificationCenter:unregisterScriptObserver(self, "blogView_refresh")  --取消回调函数监听
+end
+
+CCSafeNotificationCenter:call("postNotification", "blogView_refresh")---抛消息
+------------------
+新的事件注册方式
+init函数中
+registerCMD(self)
+退出函数中
+unRegisterCMD(self)
+上面对原有的两个函数进行的封装，一次性的注册了所有的事件，依靠的结构为
+BattleView.register = {
+  CMDID_BATTLE_ARMY_DATA_SET = "onHandle_CMDID_BATTLE_ARMY_DATA_SET",
+  CMDID_BATTLE_ARMY_DATA_REFRESH = "onHandle_CMDID_BATTLE_ARMY_DATA_REFRESH"
+}
+CMDID函数中添加事件的宏，并以此为键组织成table的数据格式
+CMDID = {}
+视类中定义事件的回调函数
+onHandle_CMDID_BATTLE_ARMY_DATA_REFRESH(param)
+消息的推送：在需要的地方推送消息
+cc.Event:pushCMD(CMDID.CMDID_BATTLE_ARMY_DATA_SET,cmdParam)
+为什么同属于event文件中的函数，为什么registerCMD，unRegisterCMD可以直接调用，而pushCMD通过全局表去调用？？
+
+
+------------------
+node的回调函数定义
+在init函数中写成包闭函数的形式
+local function onNodeEvent(event)
+      if event == "enter" then
+        self:onEnter()
+      elseif event == "exit" then
+        self:onExit()
+      elseif event == "cleanup" then
+        self:cleanup()
+      end
+    end
+node:registerScriptHandler(onNodeEvent)
+node直接调用，使得注册函数
+onenter，事件注册等
+onexit，资源释放
+clearup,self = nil
+
+clearup函数的调用时机是什么时候？？
+
+------------------
+local function loadSpriteFrames()
+  cc.SpriteFrameCache:getInstance():addSpriteFrames("Battle/Battle_soldier.plist")
+end
+
+loadSpriteFrames()--何时执行？？
+
+function BattleController:create(param)
+  local controller = BattleController.new()
+  if (controller:init(param)) then
+    return controller
+  end
+end
+
+------------------
+tolua.cast
+在Lua中，使用CCDictionary进行保存CCSprite对象，但是，在CCDictionary取出来的时候，此时是一个CCObject对象，无法调用子类精灵的一些方法。那只能进行强转的。
+那么Lua中强转一个类型函数如下:
+   tolua.cast(object,”CCSprite”) ;
+    第一个参数是需要强转的对象  ，  第二个参数是强转的目标类型
+例如我们将x 强转 CCSprite，则： tolua.cast(x,”CCSprite”)
+
+CCArray 也是，table结构也是吧
+local menuListLayer = tolua.cast(childTable[i],"cc.Layer")
+
+
+------------------
+tolua.type
+返回一个 C++ 对象的类型描述字符串。
+tolua.isnull
+检查指定 Lua 值中保存的 C++ 对象是否已经被删除。
+
+
+------------------
+定时器的使用
+scheduler = {}
+local sharedScheduler = cc.Director:getInstance():getScheduler()
+1秒回调，返回句柄
+function scheduler.scheduleUpdateGlobal(listener)
+n秒回调，返回句柄
+function scheduler.scheduleGlobal(listener, interval)
+使用句柄取消回调
+function scheduler.unscheduleGlobal(handle)
+一次性定时回调
+performWithDelayGlobal(listener, time)
+
+使用：
+1，init中
+self.scheduler = scheduler.scheduleUpdateGlobal(handler(self,self.update))
+2，一次调用处
+scheduler.performWithDelayGlobal(callback(self,desCamaraPos,delay_f), 0.01)
+3，面板退出时，释放定时器资源
+scheduler.unscheduleGlobal(self.scheduler)
+------------------
+
+单独加载图片
+local barBg = CCLoadSprite:call("createSprite", "jindutiao_new02.png")
+加载plist文件
+CCLoadSprite:call("doResourceByCommonIndex", 8, true)
+
+
+------------------
+
+C++调用lua接口的过程和理解
+1 bool LuaController::fireEvent(const char* msgID);
+&&bool LuaController::fireEvent(const char* msgID, ValueMap const& vm)
+C++luacontroller中定义fireEvent函数，依靠lc.call_fun_return(lv, "onFireEvent", msgID);完成C++参数向lua结构的传递,同时标明了lua层的调用接口是onFireEvent；
+2 LuaController::getInstance()->fireEvent("open_BlogView");
+&&LuaController::getInstance()->fireEvent("open_BlogView", vm);
+在调用处使用字符串区别所打开的面板，这也是参数的作用
+3 lua层，在guicommon文件中统一定义fireEvent函数的调用，guicommon文件中维护了一个事件映射表，
+local g_fireEventTable = 
+{
+  -- system
+  ["purge_controller"] = onPurge_Controller,
+  ...
+}
+在onfireEvent中，
+function onFireEvent(eventID, data)
+  dump(data, "onFireEvent: " .. eventID)
+  if g_fireEventTable[eventID] then
+    g_fireEventTable[eventID](data)
+  end
+end
+
+注意一下，这个方法的调用方式，其中[] 是用来索引table元素的，函数调用的时候先取函数名，再调用？？
+
+
+------------------
+tulua++ 库的补充方法
+tolua++.h:
+TOLUA_API const char* tolua_tostring_with_len (lua_State* L, int narg, const char* def, size_t* len);
+tolua_to.c
+TOLUA_API const char* tolua_tostring_with_len (lua_State* L, int narg, const char* def, size_t* len)
+{
+    const char* ret = lua_gettop(L)<abs(narg) ? def : lua_tolstring(L,narg, len);
+    if(len && ret == def)*len = strlen(def);
+    return ret;
+}
+
+C++文件中的调用
+int ScriptFunctionCCBinaryData::create(lua_State* tolua_S)
+{
+    TOLUA_IS_USER_TABLE(tolua_S, ScriptFunctionCCBinaryData::create, 1, CCBinaryData);
+    TOLUA_IS_STRING    (tolua_S, ScriptFunctionCCBinaryData::create, 2);
+    
+    size_t len;
+    const char* str = tolua_tostring_with_len(tolua_S, 2, 0,&len);
+    std::string _str = std::string(str,len);
+    int lenght =  (int)_str.length();
+    CCBinaryData* _ret = CCBinaryData::create(_str);
+    TOLUA_PUSH_BEGIN;
+    TOLUA_PUSH_USER_TYPE(tolua_S, _ret, CCBinaryData);
+    TOLUA_PUSH_END;
+}
+这个函数的作用，大概是从lua环境中取出对应栈中的参数，并转换成二进制数据后重新放入。其中tolua_tostring_with_len这个函数是我们自己自定义到tolua文件中的，补充方法见上。
+
+------------------
+
+新的C++api手动导出方法过程及理解
+1首先反着看，看lua文件的调用
+-- Global:ShowMessageBox("test lua uptate callback ","tips")
+2看C++中的实现
+ScriptFunction.h
+class ScriptFunction
+{
+public:
+    static int ShowMessageBox(lua_State* tolua_S);    
+};
+
+ScriptFunction.cpp
+int ScriptFunction::ShowMessageBox(lua_State* tolua_S)
+{
+    TOLUA_IS_USER_TABLE(tolua_S, ScriptFunction::ShowMessageBox, 1, Global);
+    TOLUA_IS_STRING(tolua_S, ScriptFunction::ShowMessageBox, 2);
+    TOLUA_IS_STRING(tolua_S, ScriptFunction::ShowMessageBox, 3);
+    
+    const char* m_msg = tolua_tostring(tolua_S, 2, 0);
+    const char* m_Title = tolua_tostring(tolua_S, 3, 0);
+    cocos2d::MessageBox(m_msg, m_Title);
+    return 0;
+}
+
+ScriptRegister.cpp
+void ScriptTypeRef(lua_State* tolua_S)
+{
+    tolua_usertype(tolua_S, "Global");
+}
+
+
+void ScriptRegister::CScriptRegister(lua_State* tolua_S)
+{
+    tolua_open(tolua_S);
+    ScriptTypeRef(tolua_S);
+    luaopen_pb(tolua_S);
+    tolua_module(tolua_S, nullptr, 0);
+    tolua_beginmodule(tolua_S, nullptr);
+    
+    tolua_cclass(tolua_S, "Global", "Global", "", NULL);
+    tolua_beginmodule(tolua_S, "Global");
+    tolua_function(tolua_S, "ShowMessageBox", ScriptFunction::ShowMessageBox);
+    tolua_endmodule(tolua_S);
+
+    tolua_endmodule(tolua_S);
+}
+
+------------------
+c++中的续行符
+这玩意儿有个正式的名称叫做续行符,在普通代码行后面加不加都一样(VC是自动判断续行的),但是在宏定义里面就特别有用,因为宏定义规定必须用一行完成:
+#define TOLUA_IS_USER_TABLE(L, funName, paramIndex, userType)                 \
+if (false == tolua_isusertable(L, paramIndex, #userType, 0, &tolua))          \
+{                                               \
+luaL_error(L, "ToLua Error '" #funName "' Param " #paramIndex " is not " #userType ".");  \
+return 0;                                         \
+}
+
+
+还有类似的
+TOLUA_IS_USER_TABLE
+TOLUA_IS_USER_TYPE
+TOLUA_IS_NUMBER
+TOLUA_IS_BOOL
+TOLUA_IS_STRING
+TOLUA_IS_NIL
+这些函数最终调用用了了tolua中的api函数，一旦判定类型不符，直接抛错
+
+------------------
+google pb使用
+1单说使用：
+    TestPBCommand * _testCmd = new TestPBCommand();
+    _testCmd->set_playerid(0);
+    _testCmd->set_playername("0");
+    _testCmd->sendAndRelease();
+    其中，TestPBCommand继承自commandbase和OPaddfriend两个类。其中在send函数中完成不同类型数据的序列化，和其他操作：
+    auto pb = dynamic_cast<::google::protobuf::Message*>(this);
+        if (pb)
+        {
+            std::string str;
+            pb->SerializeToString(&str);
+            std::string debug_str = pb->DebugString();
+            std::cout <<"pb debug str: "<<debug_str << endl;
+            putParam("pb", CCBinaryData::create(str));
+            putParam("pb_size", CCInteger::create(str.length()));
+        }
+    }
+    //SerializeToString(&str):serializes the message and stores the bytes in the given string.Note that the bytes are binary, not text.
+    // DebugString():returns a human-readable representation of the message, particularly useful for debugging.
+
+
+    解析的时候，先建立这样的数据结构
+    ::google::protobuf::Message*>  pb;
+    if (params->objectForKey("...")) {
+        string str = params->valueForKey("pb")->getcstring();
+        pb->ParseFromString(str)
+    }
+
+
+
+    命令类的声明和定义
+    class TestPBCommand: public OPAddFriend,public CommandBase
+    {
+    public:
+        TestPBCommand();
+        virtual bool handleRecieve(cocos2d::CCDictionary *dict);
+    };
+
+    TestPBCommand::TestPBCommand()
+    : CommandBase(PB_TEST_COMMAND)
+    {
+
+    }
+
+    bool TestPBCommand::handleRecieve(cocos2d::CCDictionary *dict)
+    {
+        if (dict->valueForKey("cmd")->compare(PB_TEST_COMMAND) != 0) {
+            return false;
+        }
+        OPAddFriend _msg;
+        if (dict->objectForKey("pb")) {
+            string str = dict->valueForKey("pb")->getCString();
+            _msg.ParseFromString(str);
+            int id = _msg.playerid();
+            string strname = _msg.playername();
+        }
+        return true;
+    }
+
+
+
+2 使用.proto 文件生成.pb.h,.pb.cc的c++文件，生成lua文件（.pb.lua）
+  需要在proto工具目录下，使用proto工具生成
+  生成的C++或lua文件放到工程路径下c++ if/class/pb lua:lua_static/pb
+  这样使用的时候就可以直接用了
+
+
+------------------
+telnet 10.1.5.225 8088 判断是否能连得上某服务器的某应用程序，即某个端口号
+
+------------------
+http://svn.xinggeq.com/svn/koz/arts  美术资源
+http://git.elex-tech.com/koz.ptoto/proto.git   pb
+http://git.elex-tech.com/koz-docs/product_docs.git  文档查看
+http://git.elex-tech.com/koz.client/clientcode.git  代码路径
+
+------------------
+
+远程控制
+识别码：832715351
+验证码：0844
+
+------------------
+
+spine动画的使用：
+1 检测资源文件是否存在,不存在时使用默认文件
+string jsonPath = localPath+"al_tree.json";
+string atlasPath = localPath+"alliance_tree.atlas";
+if (FileUtils::getInstance()->isFileExist(jsonPath) == false|| FileUtils::getInstance()->isFileExist(atlasPath) == false)
+{
+    return false；
+}
+2 创建骨骼动画对象（骨骼动画是个node）
+IFSkeletonAnimation* m_AniTree = NULL;
+m_AniTree = new IFSkeletonAnimation(jsonPath.c_str(),atlasPath.c_str());--文件加载
+m_AniTree->setToSetupPose();--消除残影
+m_AniTree->autorelease();--自动释放
+m_AniTree->setAnimation(0, "tree_0_1", true);--参数依次为播放动画的名称和是否循环
+cityNode->addChild(m_AniTree);
+
+
+
+cocos2d_x 3.14版本，支持spine对二进制文件格式的支持
+
+
+------------------
+
+cocos安装过程：
+1. Download the code from [cocos2d download site][4]
+2. Run `setup.py`
+3. Run the `cocos` script
+
+Example:
+
+    $ cd cocos2d-x
+    $ ./setup.py
+    $ source FILE_TO_SAVE_SYSTEM_VARIABLE
+    $ cocos new MyGame -p com.your_company.mygame -l cpp -d NEW_PROJECTS_DIR
+    $ cd NEW_PROJECTS_DIR/MyGame
+
+
+------------------
+
+cocos的demo在building文件夹中，编译工程可跑
+
+------------------
+cocos2d-x 使用位图工具BMFont自定义字体 fnt
+
+------------------
+从trunt上合并代码至branch
+1 打开branch svn，然后从modify-merge中选择源路径，选择merge log,merge就好了
+
+------------------
+Luaskeletonanimation
+
+------------------
+
+制作：1west跨服相关功能实现 2 westCommon资源整理，对图片资源进行了整理  3全服战力等级排行的功能     5糖果全球排行活动  5强征令道具   6iOS和安卓自定义声音推送 7 账号切换限制  8头像框功能 9zok资源整理、UI替换及美术更新资源的规则制定，9玩家反馈的若干bug的处理  
+
+学习：1Google Protocol Buffer的原理和使用，2lua脚本的开发过程，3代码及资源的更新机制 4骨骼动画的二进制实现方式
+
+目标：希望下一季度实现：1 使用pb方式实现与后端数据交互，降低流量使用和数据的安全性 2 使用lua脚本开发zok功能项，3 完善热更机制 4骨骼动画使用二进制文件替换json方式，期待游戏加载更快，动画更流畅，文件更小
+
+------------------
+字体文件的使用：
+需要两个文件，一个是图片文件png,另一个是字体配置文件fnt，今天发现一个坑，字体配置文件中用到了图片文件的名字，所以必须保持五篇文件和字体配置文件中的名称保持一致。
+
+------------------
+最近接触了几个工具：spine sunloginclient  bmfont git svn cocosbuilder texturePacker  xcode
+
+------------------
+退出python CTRL +Z  或 quit() 回车
+python -V 查看版本
+------------------
+git branch
+git checkout branch_ui
+git clone cangkulujing
+
+------------------
+两点优化，挺有借鉴意义的。
+1 按钮长按的连续作用效果
+2 连续点击的无卡顿无前后端交互的前端模拟效果显示。
+
+------------------
+
+file.seek(off, whence=0)：从文件中移动off个操作标记（文件指针），正往结束方向移动，负往开始方向移动。如果设定了whence参数，就以whence设定的起始位为准，0代表从头开始，1代表当前位置，2代表文件最末尾位置
+
+------------------
+
+------------------
+
+------------------
+
+-----------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
